@@ -15,55 +15,74 @@
  */
 package trust.nccgroup.readablethrift;
 
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.IOException;
 import org.apache.thrift.TException;
 import org.json.JSONObject;
-
-import java.util.Scanner;
 
 public class InteractiveCodec {
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            System.out.print("Enter Base64 encoded message or JSON object (or q to quit): ");
-
-            if (!scanner.hasNextLine()) {
-                scanner = new Scanner(System.in);
-            }
-
-            String input = scanner.nextLine();
-
-            if (input.equals("q")) {
-                break;
-            } else if (input.startsWith("{")) {
-                StringBuilder inputJsonBuilder = new StringBuilder();
-                inputJsonBuilder.append(input);
-
-                while (scanner.hasNextLine()) {
-                    inputJsonBuilder.append(scanner.nextLine());
-                }
-
-                String concatted = inputJsonBuilder.toString();
-
-                JSONObject inputJson = new JSONObject(concatted);
-
-                try {
-                    System.out.println(ThriftCodec.b64encodeJson(inputJson));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    JSONObject result = ThriftCodec.decodeB64String(input);
-                    System.out.println(result.toString(4));
-                } catch (TException e) {
-                    e.printStackTrace();
-                }
-            }
+    	for (String arg : args) {
+        	if (arg.equals("encode")) {
+        		new InteractiveCodec().encode();
+        	} else if (arg.equals("decode")) {
+        		new InteractiveCodec().decode();
+        	} else {
+        		throw new IllegalArgumentException("Unknown argument " + arg);
+        	}
         }
-
-        scanner.close();
     }
 
+    protected String readStdIn() 
+    {
+    	InputStreamReader isReader = new InputStreamReader(System.in);
+		BufferedReader bufReader = new BufferedReader(isReader);
+
+		StringBuilder stringBuilder = new StringBuilder();
+
+		while(true) {
+		    try {
+		        String inputStr = null;
+
+		        if ((inputStr = bufReader.readLine()) != null) {
+		            stringBuilder.append(inputStr);
+		        } else {
+		            String concatted = stringBuilder.toString();
+
+		            return concatted;
+		        }
+		    }
+		    catch (Exception e) {
+		        e.printStackTrace();
+		    }
+		}
+    }
+
+    public void encode() 
+    {
+    	String input = this.readStdIn();
+
+    	JSONObject inputJson = new JSONObject(input);
+
+        try {
+            System.out.println(ThriftCodec.b64encodeJson(inputJson));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void decode() 
+    {
+    	String input = this.readStdIn();
+
+    	try {
+            JSONObject result = ThriftCodec.decodeB64String(input);
+
+            System.out.println(result.toString(4));
+        } catch (TException e) {
+            e.printStackTrace();
+        }
+    }
 }
