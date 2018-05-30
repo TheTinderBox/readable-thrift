@@ -24,7 +24,7 @@ $ ./gradlew
 Выдаст ответ в stdout в виде JSON
 
 ```bash
-cat encoded-base64-string.txt | java -jar build/libs/readablethrift-1.0.0-all.jar decode
+base64 response.txt | java -jar build/libs/readablethrift-1.0.0-all.jar decode
 ```
 
 ### Кодирование сообщений - JSON в Thrift binary
